@@ -27,10 +27,10 @@ def init_args():
     """
     parser = argparse.ArgumentParser()
     # parser.add_argument('--image_path', type=str, help='The image path or the src image save dir')
-    parser.add_argument('--vid_path',default='data/sample.mp4' type=str, help='The path where the video is stored')
+    parser.add_argument('--vid_path',default='data/sample.mp4', type=str, help='The path where the video is stored')
 
-    parser.add_argument('--weights_path', default='trained/', type=str, help='The model weights path')
-    parser.add_argument('--is_batch', type=str, help='If test a batch of images', default='True')
+    parser.add_argument('--weights_path', default='trained/culane_lanenet_vgg_2018-12-01-14-38-37.ckpt-10000', type=str, help='The model weights path')
+    parser.add_argument('--is_batch', type=str, help='If test a batch of images', default='False')
     parser.add_argument('--batch_size', type=int, help='The batch size of the test images', default=1)
     parser.add_argument('--save_dir', type=str, help='Test result image save dir', default='predicts/')
     parser.add_argument('--use_gpu', type=int, help='If use gpu set 1 or 0 instead', default=1)
@@ -39,17 +39,17 @@ def init_args():
 
 
 
-def test_lanenet(image_path, weights_path, use_gpu, batch_size, save_dir):
+def test_lanenet(vid_path, weights_path, use_gpu, batch_size, save_dir):
 
     """
-    :param image_path:
+    :param image_path: -> vid_path
     :param weights_path:
     :param use_gpu:
     :return:
     """
     
-    test_dataset = lanenet_data_processor_test.DataSet(image_path, batch_size)
-    input_tensor = tf.placeholder(dtype=tf.string, shape=[None], name='input_tensor')
+    test_dataset = lanenet_data_processor_test.DataSet(vid_path, batch_size)
+    input_tensor = tf.placeholder(dtype=tf.int32, shape=[1, None, None, 3], name='input_tensor')
     imgs = tf.map_fn(test_dataset.process_img, input_tensor, dtype=tf.float32)
     phase_tensor = tf.constant('test', tf.string)
 
@@ -82,7 +82,7 @@ def test_lanenet(image_path, weights_path, use_gpu, batch_size, save_dir):
         #         os.makedirs(directory)
         #     file_exist = open(os.path.join(directory, os.path.basename(image_name)[:-3] + 'exist.txt'), 'w')
         for cnt_img in range(4):
-            cv2.imwrite(os.path.join(str(cnt_img + 1) + '_avg.png'),(instance_seg_image[cnt, :, :, cnt_img + 1] * 255).astype(int))
+            cv2.imwrite('predicts/'+os.path.join(str(cnt_img + 1) + '_avg.png'),(instance_seg_image[0, :, :, cnt_img + 1] * 255).astype(int))
         #     if existence_output[cnt, cnt_img] > 0.5:
         #         file_exist.write('1 ')
         #     else:
@@ -100,7 +100,7 @@ if __name__ == '__main__':
         log.error('{:s} not exist and has been made'.format(args.save_dir))
         os.makedirs(args.save_dir)
 
-    save_dir = os.path.join(args.image_path, 'predicts')
+    save_dir = os.path.join('predicts')
     if args.save_dir is not None:
         save_dir = args.save_dir
 
@@ -109,4 +109,4 @@ if __name__ == '__main__':
     #     for line in g.readlines():
     #         img_name.append(line.strip())
 
-    test_lanenet(args.image_path, args.weights_path, args.use_gpu, args.batch_size, save_dir)
+    test_lanenet(args.vid_path, args.weights_path, args.use_gpu, args.batch_size, save_dir)
