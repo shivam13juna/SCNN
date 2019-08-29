@@ -51,4 +51,5 @@ class DataSet(object):
         if self.success:
             return self.image
         else:
+            print("Returning zero")
             return 0

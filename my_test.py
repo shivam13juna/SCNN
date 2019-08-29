@@ -68,21 +68,30 @@ def test_lanenet(vid_path, weights_path, use_gpu, batch_size, save_dir):
     sess_config.gpu_options.allocator_type = 'BFC'
     sess = tf.Session(config=sess_config)
     with sess.as_default():
+        avar = 0
         sess.run(tf.global_variables_initializer())
         saver.restore(sess=sess, save_path=weights_path)
-    
-        paths = test_dataset.next_batch()
-        instance_seg_image, existence_output = sess.run([binary_seg_ret, instance_seg_ret],
-                                                        feed_dict={input_tensor: paths})
-        # for cnt, image_name in enumerate(paths):
-        #     print(image_name)
-        #     parent_path = os.path.dirname(image_name)
-        #     directory = os.path.join(save_dir, 'vgg_SCNN_DULR_w9', parent_path)
-        #     if not os.path.exists(directory):
-        #         os.makedirs(directory)
-        #     file_exist = open(os.path.join(directory, os.path.basename(image_name)[:-3] + 'exist.txt'), 'w')
-        for cnt_img in range(4):
-            cv2.imwrite('predicts/'+os.path.join(str(cnt_img + 1) + '_avg.png'),(instance_seg_image[0, :, :, cnt_img + 1] * 255).astype(int))
+        cont = True
+        while cont:
+            paths = test_dataset.next_batch()
+            if paths is None:
+                sess.close()
+                return
+            
+
+            instance_seg_image, existence_output = sess.run([binary_seg_ret, instance_seg_ret],
+                                                            feed_dict={input_tensor: paths})
+            # for cnt, image_name in enumerate(paths):
+            #     print(image_name)
+            #     parent_path = os.path.dirname(image_name)
+            #     directory = os.path.join(save_dir, 'vgg_SCNN_DULR_w9', parent_path)
+            #     if not os.path.exists(directory):
+            #         os.makedirs(directory)
+            #     file_exist = open(os.path.join(directory, os.path.basename(image_name)[:-3] + 'exist.txt'), 'w')
+            print("It happened for: ", avar)
+            avar+=1
+            for cnt_img in range(4):
+                cv2.imwrite('predicts/'+os.path.join(str(cnt_img + 1) + '_avg.png'),(instance_seg_image[0, :, :, cnt_img + 1] * 255).astype(int))
         #     if existence_output[cnt, cnt_img] > 0.5:
         #         file_exist.write('1 ')
         #     else:
